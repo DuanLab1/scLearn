@@ -1,13 +1,47 @@
 Package: scLearn
 Type: Package
 Title: Learning for single cell assignment
-Version: 1.0
-Date: 2019-12-13
-Author: Bin Duan
-Maintainer: Bin Duan <bioinfo_db@163.com>
+Version: 2.0.0
+Authors@R: c(
+    person("Bin", "Duan", email = "binduan@sjtu.edu.cn", role = c("aut", "cre")),
+    person("Hua", "Zou", email = "zouhua1@outlook.com", role = c("aut"))
+  )
 Description: scLearn is a learning-based framework for single cell assignment.
-License: GPL-2
-Depends: dml, SingleCellExperiment, M3Drop, R (>= 3.6.1)
-Keyword: single-cell assignment, learning-based
-
+License: GPL-3 + file LICENSE
+Encoding: UTF-8
+LazyData: true
+LazyDataCompression: gzip
+RoxygenNote: 7.3.2
+Depends: 
+    R (>= 4.1.0)
+Imports:
+    SingleCellExperiment,
+    M3Drop,
+    dml,
+    stringr,
+    grDevices,
+    graphics,
+    stats,
+    parallel,
+    dplyr,
+    ggplot2,
+    tidyverse,
+    Matrix,
+    Rcpp,
+    RcppArmadillo
+Suggests:
+    rmarkdown,
+    knitr,
+    testthat,
+    devtools,
+    BiocStyle,
+    Rtsne,
+    umap,
+    scmap
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo    
+VignetteBuilder: knitr
+BugReports: https://github.com/DuanLab1/scLearn/issues
+URL: https://github.com/DuanLab1/scLearn
 

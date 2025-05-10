@@ -1,0 +1,36 @@
+url: https://github.com/DuanLab1/scLearn
+template:
+  bootstrap: 5
+
+reference:
+  - title: "Quality Control"
+    desc: >
+      Functions for Quality Control
+    contents:
+      - Cell_qc
+      - Cell_type_filter
+  - title: "Model Training"
+    desc: >
+      Functions to Model Training
+    contents:
+      - runLMNN
+      - runDCA
+      - scLearn_model_learning
+      - scLearn_cell_assignment
+      - correlation
+      - mahalanobis_distance_r
+  - title: "Example data"
+    contents:
+      - RefCellData
+      - QueryCellData
+  - title: "Feature Selection"
+    desc: >
+      Functions for advanced feature selection HVGs
+    contents:
+      - Feature_selection_M3Drop
+  - title: "Visualization"
+    desc: >
+      Functions for Visualization
+    contents:
+      - sankey_plot
+      - DrawCluster
