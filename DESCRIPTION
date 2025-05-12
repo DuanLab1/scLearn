@@ -25,10 +25,7 @@ Imports:
     parallel,
     dplyr,
     ggplot2,
-    tidyverse,
-    Matrix,
-    Rcpp,
-    RcppArmadillo
+    Matrix
 Suggests:
     rmarkdown,
     knitr,
@@ -37,10 +34,10 @@ Suggests:
     BiocStyle,
     Rtsne,
     umap,
-    scmap
-LinkingTo: 
-    Rcpp,
-    RcppArmadillo    
+    tidyverse,    
+    scmap,
+    quadprog,
+    irlba
 VignetteBuilder: knitr
 BugReports: https://github.com/DuanLab1/scLearn/issues
 URL: https://github.com/DuanLab1/scLearn

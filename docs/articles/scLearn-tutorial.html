@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>scLearn Tutorial: Learning for single cell assignment • scLearn</title>
+<title>scLearn tutorial: a learning-based framework for single cell assignment • scLearn</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="scLearn Tutorial: Learning for single cell assignment">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="scLearn tutorial: a learning-based framework for single cell assignment">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -33,7 +33,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/scLearn-tutorial.html">scLearn Tutorial: Learning for single cell assignment</a></li>
+<li><a class="dropdown-item" href="../articles/scLearn-Metric_Learning.html">Multiple Metric Learning Methods in scLearn</a></li>
+    <li><a class="dropdown-item" href="../articles/scLearn-tutorial.html">scLearn tutorial: a learning-based framework for single cell assignment</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -56,13 +57,13 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>scLearn Tutorial: Learning for single cell assignment</h1>
+      <h1>scLearn tutorial: a learning-based framework for single cell assignment</h1>
                         <h4 data-toc-skip class="author">Bin Duan</h4>
             <address class="author_afil">
       SJTU<br><a class="author_email" href="mailto:#"></a><a href="mailto:binduan@sjtu.edu.cn" class="email">binduan@sjtu.edu.cn</a>
       </address>
                   
-            <h4 data-toc-skip class="date">2025-05-09</h4>
+            <h4 data-toc-skip class="date">2025-05-12</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/DuanLab1/scLearn/blob/HEAD/vignettes/scLearn-tutorial.Rmd"><code>vignettes/scLearn-tutorial.Rmd</code></a></small>
       <div class="d-none name"><code>scLearn-tutorial.Rmd</code></div>
@@ -278,23 +279,7 @@ features * 324 HVGs)</p></li>
 cell type features (these features are obtained by dimensionality
 reduction of the highly variable gene set) (12 celltype * 23
 features)</p></li>
-<li><p>LMNN: Implements Large Margin Nearest Neighbor (LMNN) metric
-learning Transformation</p></li>
 </ul>
-<p><strong>Note: LMNN took a long time</strong></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">scLearn_model_learning_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/scLearn_model_learning.html">scLearn_model_learning</a></span><span class="op">(</span></span>
-<span>  high_varGene_names <span class="op">=</span> <span class="va">RefDataQC_HVG_names</span>,</span>
-<span>  expression_profile <span class="op">=</span> <span class="va">RefDataQC_filtered</span><span class="op">$</span><span class="va">expression_profile</span>,</span>
-<span>  sample_information_cellType <span class="op">=</span> <span class="va">RefDataQC_filtered</span><span class="op">$</span><span class="va">sample_information_cellType</span>,</span>
-<span>  sample_information_timePoint <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"LMNN"</span>,</span>
-<span>  bootstrap_times <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  cutoff <span class="op">=</span> <span class="fl">0.01</span>,</span>
-<span>  dim_para <span class="op">=</span> <span class="fl">0.999</span>,</span>
-<span>  k <span class="op">=</span> <span class="fl">30</span>,</span>
-<span>  max_iter <span class="op">=</span> <span class="fl">100</span></span>
-<span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="cell-assignment">Cell assignment<a class="anchor" aria-label="anchor" href="#cell-assignment"></a>
@@ -304,7 +289,7 @@ learning Transformation</p></li>
 sure that the cell type of query cells must be in the reference dataset,
 you can set “threshold_use” as FALSE. It means you don’t want to use the
 thresholds learned by scLearn.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">QueryRawcounts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assays</a></span><span class="op">(</span><span class="va">QueryCellData</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">QueryDataQC</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/Cell_qc.html">Cell_qc</a></span><span class="op">(</span></span>
 <span>  expression_profile <span class="op">=</span> <span class="va">QueryRawcounts</span>, </span>
@@ -322,7 +307,7 @@ thresholds learned by scLearn.</p>
 <span>  vote_rate <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "The number of missing features in the query data is  17 "</span></span>
 <span><span class="co">## [1] "The rate of missing features in the query data is  0.0524691358024691 "</span></span></code></pre>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">scLearn_predict_result</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##          Query_cell_id Predict_cell_type Additional_information</span></span>
 <span><span class="co">## D31.7_38      D31.7_38        unassigned             Novel_Cell</span></span>
@@ -343,7 +328,7 @@ are those that do not intersect with the reference cell set.</li>
 <div class="section level3">
 <h3 id="accuracy">Accuracy<a class="anchor" aria-label="anchor" href="#accuracy"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">QueryData_trueLabel</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">QueryCellData</span><span class="op">$</span><span class="va">cell_type1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">QueryData_trueLabel</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">QueryCellData</span><span class="op">)</span></span>
 <span></span>
@@ -374,7 +359,7 @@ are those that do not intersect with the reference cell set.</li>
 the multi-label single cell assignment here.</p></li>
 </ul>
 <p>Download <a href="https://www.jianguoyun.com/p/DeO3PrIQwdXjCBjq0cgD" class="external-link"><code>ESC.rds</code></a></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># loading the reference dataset</span></span>
 <span><span class="va">RefData_MLab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"ESC.rds"</span><span class="op">)</span></span>
 <span><span class="va">RefRawcounts_MLab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assays</a></span><span class="op">(</span><span class="va">RefData_MLab</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
@@ -869,7 +854,7 @@ Q. Liu, Learning for single-cell assignment. Sci. Adv. 6, eabd0855
 <div class="section level2">
 <h2 id="system-information">System information<a class="anchor" aria-label="anchor" href="#system-information"></a>
 </h2>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## R version 4.4.3 (2025-02-28)</span></span>
 <span><span class="co">## Platform: aarch64-apple-darwin20</span></span>

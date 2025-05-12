@@ -15,10 +15,13 @@ reference:
     contents:
       - runLMNN
       - runDCA
+      - runNCA
+      - runITML
+      - runMMC
+      - runMSL
       - scLearn_model_learning
       - scLearn_cell_assignment
       - correlation
-      - mahalanobis_distance_r
   - title: "Example data"
     contents:
       - RefCellData

@@ -1,5 +1,5 @@
 ---
-title: "scLearn Tutorial: Learning for single cell assignment"
+title: "scLearn tutorial: a learning-based framework for single cell assignment"
 package: "scLearn"
 author:
   - name: Bin Duan
@@ -16,7 +16,7 @@ output:
   pdf_document:
     toc: true
 vignette: >
-  %\VignetteIndexEntry{scLearn Tutorial}
+  %\VignetteIndexEntry{scLearn tutorial}
   %\VignetteEngine{knitr::rmarkdown}
   %\usepackage[utf8]{inputenc}  
   %\VignetteEncoding{UTF-8}
@@ -181,25 +181,6 @@ scLearn_model_learning_result <- scLearn_model_learning(
 
 -   `feature_matrix_learned`: After DCA, the matrix of cell type features (these features are obtained by dimensionality reduction of the highly variable gene set) (`r dim(scLearn_model_learning_result$feature_matrix_learned[[1]])[1]` celltype \* `r dim(scLearn_model_learning_result$feature_matrix_learned[[1]])[2]` features)
 
-
-+ LMNN: Implements Large Margin Nearest Neighbor (LMNN) metric learning Transformation
-
-**Note: LMNN took a long time**
-
-```r
-scLearn_model_learning_result <- scLearn_model_learning(
-  high_varGene_names = RefDataQC_HVG_names,
-  expression_profile = RefDataQC_filtered$expression_profile,
-  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
-  sample_information_timePoint = NULL,
-  method = "LMNN",
-  bootstrap_times = 1,
-  cutoff = 0.01,
-  dim_para = 0.999,
-  k = 30,
-  max_iter = 100
-)
-```
 
 ### Cell assignment
 

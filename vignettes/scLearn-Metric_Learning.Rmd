@@ -1,0 +1,514 @@
+---
+title: "Multiple Metric Learning Methods in scLearn"
+package: "scLearn"
+author:
+  - name: Bin Duan
+    affiliation: SJTU
+    email: binduan@sjtu.edu.cn
+date: "`r Sys.Date()`"
+output: 
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    fig_width: 8
+    fig_height: 6
+  pdf_document:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Metric Learning in scLearn}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\usepackage[utf8]{inputenc}  
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center",
+  cache = TRUE
+)
+library(BiocStyle)
+```
+
+
+## Introduction
+
+Comprehensive summary table of the six metric learning methods used in scLearn
+
+| **Method**                                            | **Core Idea**                                                | **Advantages**                                               | **Disadvantages**                                            | **Recommended Sample Size** |
+| ----------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------- |
+| **DCA** (Discriminative Component Analysis)           | Linear transformation maximizing the between-class / within-class variance ratio (Fisher-style) | Fast, simple, stable; no iterative optimization              | Assumes linear class separability; not suitable for complex manifolds | Small to medium             |
+| **LMNN** (Large Margin Nearest Neighbors)             | Learns a transformation that maintains class-consistent k-NN relationships with margin constraints | High classification accuracy; interpretable                  | Computationally expensive; requires many triplets; slow without parallelization | Small to medium             |
+| **MSL-LMNN** (Multi-Similarity Loss-Based Metric Learning) | Enhances LMNN by leveraging multiple similarity cues and continuous loss instead of discrete triplets | More stable optimization; better generalization with fewer pairs | Still requires pairwise comparisons; moderately slow without batching | Medium to large             |
+| **NCA** (Neighborhood Components Analysis)            | Maximizes the probability of correct classification under stochastic nearest neighbors | Theoretically elegant; good embedding quality                | Sensitive to noise; no margin; costly without approximate neighbors | Small to medium             |
+| **ITML** (Information-Theoretic Metric Learning)      | Learns Mahalanobis distance with relative constraints, regularized by information-theoretic divergence | Robust to noise; stable convergence; works with few constraints | Requires careful tuning; slow on high-dimensional data       | Small to medium             |
+| **MMC** (Maximum Margin Clustering)                   | Maximizes inter-class separation while minimizing intra-class spread using scatter matrices | Good for clustering and large-margin separation              | High memory usage; expensive eigen decomposition; difficult on large datasets | Medium (with memory)        |
+
+
+
+## Installation
+
+```{r}
+library(scLearn)
+library(tidyverse) 
+library(SingleCellExperiment)
+library(M3Drop)
+```
+
+
+## Data preparation
+
++ `Reference Cell Database`: baron-human
+
++ `Query Cell Data`: Muraro-human
+
+```{r}
+data(RefCellData)
+data(QueryCellData)
+stratified_sample <- function(cell_types, n_total = 300, min_per_type = 10) {
+  sampled <- lapply(split(seq_along(cell_types), cell_types), function(idx) {
+    if(length(idx) > min_per_type) {
+      sample(idx, max(min_per_type, round(n_total * length(idx)/length(cell_types))))
+    } else {
+      idx
+    }
+  })
+   unlist(sampled)
+}
+
+
+set.seed(123)
+
+cell_types <- colData(RefCellData)$cell_type1
+sampled_cells <- stratified_sample(cell_types)
+RefCellData <- RefCellData[, sampled_cells]
+RefCellData
+
+cell_types <- colData(QueryCellData)$cell_type1
+sampled_cells <- stratified_sample(cell_types)
+QueryCellData <- QueryCellData[, sampled_cells]
+QueryCellData
+```
+
+## Quality control
+
+```{r}
+RefRawcounts <- assays(RefCellData)[[1]]
+RefAnn <- as.character(RefCellData$cell_type1)
+names(RefAnn) <- colnames(RefCellData)
+
+RefDataQC <- Cell_qc(
+  expression_profile = RefRawcounts, 
+  sample_information_cellType = RefAnn, 
+  sample_information_timePoint = NULL, 
+  species = "Hs",
+  gene_low = 500, 
+  gene_high = 10000, 
+  mito_high = 0.1, 
+  umi_low = 1500, 
+  umi_high = Inf, 
+  logNormalize = TRUE, 
+  plot = FALSE, 
+  plot_path = "./quality_control.pdf")
+```
+
+## Filtering rare cell
+
+```{r}
+RefDataQC_filtered <- Cell_type_filter(
+  expression_profile = RefDataQC$expression_profile, 
+  sample_information_cellType = RefDataQC$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  min_cell_number = 10)
+```
+
+## Feature selection
+
+highest variable genes
+
+```{r}
+RefDataQC_HVG_names <- Feature_selection_M3Drop(
+  expression_profile = RefDataQC_filtered$expression_profile,
+  log_normalized = TRUE, 
+  threshold = 0.05)
+```
+
+## QueryData Processing
+
+```{r}
+QueryRawcounts <- assays(QueryCellData)[[1]]
+QueryDataQC <- Cell_qc(
+  expression_profile = QueryRawcounts, 
+  species = "Hs", 
+  gene_low = 50, 
+  umi_low = 50)
+
+rownames(QueryDataQC$expression_profile) <- gsub("__\\w+\\d+", "", rownames(QueryDataQC$expression_profile))
+
+QueryData_trueLabel <- as.character(QueryCellData$cell_type1)
+names(QueryData_trueLabel) <- colnames(QueryCellData)
+```
+
+
+## DCA
+
+Discriminative Component Analysis (DCA) Transformation
+
++ model learning
+
+```{r}
+scLearn_model_learning_result_DCA <- scLearn_model_learning(
+  high_varGene_names = RefDataQC_HVG_names,
+  expression_profile = RefDataQC_filtered$expression_profile,
+  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  method = "DCA",
+  bootstrap_times = 1,
+  cutoff = 0.01,
+  dim_para = 0.999
+)
+```
+
+**Results**：`scLearn_model_learning_result_DCA`is the final result file containing the processed reference cell matrix.
+
+-   `high_varGene_names`: The set of highly variable genes (`r length(scLearn_model_learning_result_DCA$high_varGene_names)` HVGs)
+
+-   `simi_threshold_learned`: The similarity results between cell types
+
+-   `trans_matrix_learned`: The transformed matrix (`r dim(scLearn_model_learning_result_DCA$trans_matrix_learned[[1]])[1]` features \* `r dim(scLearn_model_learning_result_DCA$trans_matrix_learned[[1]])[2]` HVGs)
+
+-   `feature_matrix_learned`: After DCA, the matrix of cell type features (these features are obtained by dimensionality reduction of the highly variable gene set) (`r dim(scLearn_model_learning_result_DCA$feature_matrix_learned[[1]])[1]` celltype \* `r dim(scLearn_model_learning_result_DCA$feature_matrix_learned[[1]])[2]` features)
+
+
++ cell assignment
+
+```{r}
+scLearn_predict_result_DCA <- scLearn_cell_assignment(
+  scLearn_model_learning_result = scLearn_model_learning_result_DCA, 
+  expression_profile_query = QueryDataQC$expression_profile, 
+  diff = 0.05, 
+  threshold_use = TRUE, 
+  vote_rate = 0.6)
+
+head(scLearn_predict_result_DCA)
+```
+
+**Results**: The output consists of three columns of information. The `Query_cell_id` represents the cell ID, `Predict_cell_type` indicates the predicted cell type, and `Additional_information` provides the similarity results. Cells with a `Predict_cell_type` of *unassigned* are those that do not intersect with the reference cell set.
+
++ Accuracy
+
+```{r}
+QueryData_CellType_DCA <- QueryData_trueLabel |> 
+  as.data.frame() |>
+  tibble::rownames_to_column("CellID") |>
+  dplyr::rename(trueLabel = QueryData_trueLabel) |>  
+  dplyr::inner_join(scLearn_predict_result_DCA |>
+                      as.data.frame() |>
+                      dplyr::rename(predLabel = Predict_cell_type),
+                    by = c("CellID" = "Query_cell_id")) |>
+  dplyr::select(CellID, trueLabel, predLabel, everything())
+
+print(
+  paste("DCA Accuracy =", 
+    sprintf("%1.2f%%",
+      100 * sum(QueryData_CellType_DCA$predLabel == QueryData_CellType_DCA$trueLabel) / nrow(QueryData_CellType_DCA))))
+```
+
+
+## LMNN
+
+Implements Large Margin Nearest Neighbor (LMNN) metric learning Transformation
+
++ model learning
+
+```{r}
+scLearn_model_learning_result_LMNN <- scLearn_model_learning(
+  high_varGene_names = RefDataQC_HVG_names,
+  expression_profile = RefDataQC_filtered$expression_profile,
+  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  method = "LMNN",
+  bootstrap_times = 1,
+  cutoff = 0.01,
+  dim_para = 0.999,
+  k = 5,
+  max_iter = 1
+)
+```
+
+
++ cell assignment
+
+```{r}
+scLearn_predict_result_LMNN <- scLearn_cell_assignment(
+  scLearn_model_learning_result = scLearn_model_learning_result_LMNN, 
+  expression_profile_query = QueryDataQC$expression_profile, 
+  diff = 0.05, 
+  threshold_use = TRUE, 
+  vote_rate = 0.6)
+
+head(scLearn_predict_result_LMNN)
+```
+
++ Accuracy
+
+```{r}
+QueryData_CellType_LMNN <- QueryData_trueLabel |> 
+  as.data.frame() |>
+  tibble::rownames_to_column("CellID") |>
+  dplyr::rename(trueLabel = QueryData_trueLabel) |>  
+  dplyr::inner_join(scLearn_predict_result_LMNN |>
+                      as.data.frame() |>
+                      dplyr::rename(predLabel = Predict_cell_type),
+                    by = c("CellID" = "Query_cell_id")) |>
+  dplyr::select(CellID, trueLabel, predLabel, everything())
+
+print(
+  paste("LMNN Accuracy =", 
+    sprintf("%1.2f%%",
+      100 * sum(QueryData_CellType_LMNN$predLabel == QueryData_CellType_LMNN$trueLabel) / nrow(QueryData_CellType_LMNN))))
+```
+
+
+## MSL-LMNN
+
+Implements Multi-Similarity Loss-Based Large Margin Nearest Neighbor (LMNN) metric learning Transformation
+
+**Note: MSL-LMNN took a long time**
+
++ model learning
+
+```{r}
+scLearn_model_learning_result_MSL <- scLearn_model_learning(
+  high_varGene_names = RefDataQC_HVG_names,
+  expression_profile = RefDataQC_filtered$expression_profile,
+  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  method = "MSL",
+  bootstrap_times = 1,
+  cutoff = 0.01,
+  dim_para = 0.999,
+  max_iter = 1
+)
+```
+
+
++ cell assignment
+
+```{r}
+scLearn_predict_result_MSL <- scLearn_cell_assignment(
+  scLearn_model_learning_result = scLearn_model_learning_result_MSL, 
+  expression_profile_query = QueryDataQC$expression_profile, 
+  diff = 0.05, 
+  threshold_use = TRUE, 
+  vote_rate = 0.6)
+
+head(scLearn_predict_result_MSL)
+```
+
++ Accuracy
+
+```{r}
+QueryData_CellType_MSL <- QueryData_trueLabel |> 
+  as.data.frame() |>
+  tibble::rownames_to_column("CellID") |>
+  dplyr::rename(trueLabel = QueryData_trueLabel) |>  
+  dplyr::inner_join(scLearn_predict_result_MSL |>
+                      as.data.frame() |>
+                      dplyr::rename(predLabel = Predict_cell_type),
+                    by = c("CellID" = "Query_cell_id")) |>
+  dplyr::select(CellID, trueLabel, predLabel, everything())
+
+print(
+  paste("MSL Accuracy =", 
+    sprintf("%1.2f%%",
+      100 * sum(QueryData_CellType_MSL$predLabel == QueryData_CellType_MSL$trueLabel) / nrow(QueryData_CellType_MSL))))
+```
+
+## NCA
+
+Neighborhood Components Analysis (maximizes leave-one-out classification probability)
+
++ model learning
+
+```{r}
+scLearn_model_learning_result_NCA <- scLearn_model_learning(
+  high_varGene_names = RefDataQC_HVG_names,
+  expression_profile = RefDataQC_filtered$expression_profile,
+  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  method = "NCA",
+  bootstrap_times = 1,
+  cutoff = 0.01,
+  dim_para = 0.999,
+  max_iter = 1
+)
+```
+
++ cell assignment
+
+```{r}
+scLearn_predict_result_NCA <- scLearn_cell_assignment(
+  scLearn_model_learning_result = scLearn_model_learning_result_NCA, 
+  expression_profile_query = QueryDataQC$expression_profile, 
+  diff = 0.05, 
+  threshold_use = TRUE, 
+  vote_rate = 0.6)
+
+head(scLearn_predict_result_NCA)
+```
+
++ Accuracy
+
+```{r}
+QueryData_CellType_NCA <- QueryData_trueLabel |> 
+  as.data.frame() |>
+  tibble::rownames_to_column("CellID") |>
+  dplyr::rename(trueLabel = QueryData_trueLabel) |>  
+  dplyr::inner_join(scLearn_predict_result_NCA |>
+                      as.data.frame() |>
+                      dplyr::rename(predLabel = Predict_cell_type),
+                    by = c("CellID" = "Query_cell_id")) |>
+  dplyr::select(CellID, trueLabel, predLabel, everything())
+
+print(
+  paste("NCA Accuracy =", 
+    sprintf("%1.2f%%",
+      100 * sum(QueryData_CellType_NCA$predLabel == QueryData_CellType_NCA$trueLabel) / nrow(QueryData_CellType_NCA))))
+```
+
+## ITML
+
+Information-Theoretic Metric Learning
+
++ model learning
+
+```{r}
+scLearn_model_learning_result_ITML <- scLearn_model_learning(
+  high_varGene_names = RefDataQC_HVG_names,
+  expression_profile = RefDataQC_filtered$expression_profile,
+  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  method = "ITML",
+  bootstrap_times = 1,
+  cutoff = 0.01,
+  dim_para = 0.999,
+  max_iter = 1
+)
+```
+
++ cell assignment
+
+```{r}
+scLearn_predict_result_ITML <- scLearn_cell_assignment(
+  scLearn_model_learning_result = scLearn_model_learning_result_ITML, 
+  expression_profile_query = QueryDataQC$expression_profile, 
+  diff = 0.05, 
+  threshold_use = TRUE, 
+  vote_rate = 0.6)
+
+head(scLearn_predict_result_ITML)
+```
+
++ Accuracy
+
+```{r}
+QueryData_CellType_ITML <- QueryData_trueLabel |> 
+  as.data.frame() |>
+  tibble::rownames_to_column("CellID") |>
+  dplyr::rename(trueLabel = QueryData_trueLabel) |>  
+  dplyr::inner_join(scLearn_predict_result_ITML |>
+                      as.data.frame() |>
+                      dplyr::rename(predLabel = Predict_cell_type),
+                    by = c("CellID" = "Query_cell_id")) |>
+  dplyr::select(CellID, trueLabel, predLabel, everything())
+
+print(
+  paste("ITML Accuracy =", 
+    sprintf("%1.2f%%",
+      100 * sum(QueryData_CellType_ITML$predLabel == QueryData_CellType_ITML$trueLabel) / nrow(QueryData_CellType_ITML))))
+```
+
+## MMC
+
+Maximum Margin Clustering (explicitly optimizes within-class/between-class scatter matrices)
+
++ model learning
+
+```{r}
+scLearn_model_learning_result_MMC <- scLearn_model_learning(
+  high_varGene_names = RefDataQC_HVG_names,
+  expression_profile = RefDataQC_filtered$expression_profile,
+  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  method = "MMC",
+  bootstrap_times = 1,
+  cutoff = 0.01,
+  dim_para = 0.999,
+  max_iter = 1
+)
+```
+
++ cell assignment
+
+```{r}
+scLearn_predict_result_MMC <- scLearn_cell_assignment(
+  scLearn_model_learning_result = scLearn_model_learning_result_MMC, 
+  expression_profile_query = QueryDataQC$expression_profile, 
+  diff = 0.05, 
+  threshold_use = TRUE, 
+  vote_rate = 0.6)
+
+head(scLearn_predict_result_MMC)
+```
+
++ Accuracy
+
+```{r}
+QueryData_CellType_MMC <- QueryData_trueLabel |> 
+  as.data.frame() |>
+  tibble::rownames_to_column("CellID") |>
+  dplyr::rename(trueLabel = QueryData_trueLabel) |>  
+  dplyr::inner_join(scLearn_predict_result_MMC |>
+                      as.data.frame() |>
+                      dplyr::rename(predLabel = Predict_cell_type),
+                    by = c("CellID" = "Query_cell_id")) |>
+  dplyr::select(CellID, trueLabel, predLabel, everything())
+
+print(
+  paste("MMC Accuracy =", 
+    sprintf("%1.2f%%",
+      100 * sum(QueryData_CellType_MMC$predLabel == QueryData_CellType_MMC$trueLabel) / nrow(QueryData_CellType_MMC))))
+```
+
+
+## Summary
+
+| **Method**                                            | Accuracy(%) |
+| ----------------------------------------------------- | ----------- |
+| **DCA** (Discriminative Component Analysis)           | 81.23       |
+| **LMNN** (Large Margin Nearest Neighbors)             | 79.94       |
+| **MSL-LMNN** (Multi-Similarity Loss-Based Metric Learning) | 78.32       |
+| **NCA** (Neighborhood Components Analysis)            | 79.94       |
+| **ITML** (Information-Theoretic Metric Learning)      | 79.94       |
+| **MMC** (Maximum Margin Clustering)                   | 71.20       |
+
+
+The table compares the accuracy of six metric learning methods, with DCA (Discriminative Component Analysis) achieving the highest accuracy at 81.23%. LMNN, NCA, and ITML share identical performance at 79.94%, followed by MSL at 78.32%. MMC (Maximum Margin Clustering) shows the lowest accuracy among the evaluated methods at 71.20%. (**RefCellData** & **QueryCellData**)
+
+Key observations:
+
+- DCA outperforms all other methods by a clear margin (1.29% higher than the second-best group).
+- Three methods (LMNN, NCA, ITML) demonstrate identical performance levels.
+- MMC trails significantly behind other approaches, with a ~8-10% accuracy gap compared to top performers.
+
+
+## System information
+
+```{r}
+sessionInfo()
+```
+

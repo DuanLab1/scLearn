@@ -2,46 +2,50 @@
 % Please edit documentation in R/scLearn_model_learning.R
 \name{runLMNN}
 \alias{runLMNN}
-\title{LMNN Transformation for scLearn}
+\title{Triplet Loss-Based Metric Learning for Single-Cell Data}
 \usage{
 runLMNN(
   high_varGenes,
   expression_profile,
   sample_information,
-  k = 20,
+  k = 5,
+  margin = 1,
   learn_rate = 1e-04,
-  max_iter = 10,
+  max_iter = 100,
   seed = 1,
   verbose = TRUE
 )
 }
 \arguments{
-\item{high_varGenes}{Character vector of high-variance genes}
+\item{high_varGenes}{Character vector of highly variable gene names.}
 
-\item{expression_profile}{Numeric matrix (genes x cells)}
+\item{expression_profile}{A numeric matrix of gene expression values (genes x cells).}
 
-\item{sample_information}{Named vector of cell type labels}
+\item{sample_information}{A named vector of cell type labels (names match column names of expression_profile).}
 
-\item{k}{Number of target neighbors (default: 3)}
+\item{k}{Number of positive neighbors per anchor to form triplets (default: 5).}
 
-\item{learn_rate}{Learning rate (default: 1e-4)}
+\item{margin}{Margin between positive and negative pairs (default: 1.0).}
 
-\item{max_iter}{Maximum iterations (default: 10)}
+\item{learn_rate}{Learning rate for updates (default: 1e-4).}
 
-\item{seed}{Random seed (default: 1)}
+\item{max_iter}{Number of optimization iterations (default: 100).}
 
-\item{verbose}{Print progress (default: TRUE)}
+\item{seed}{Random seed (default: 1).}
+
+\item{verbose}{Logical; whether to print progress messages (default: TRUE).}
 }
 \value{
-List containing:
+A list containing:
 \itemize{
-  \item expression_profile_trans: Transformed matrix (genes x cells)
-  \item expression_profile_origin: Original matrix
-  \item trans_matrix: Learned transformation matrix
-  \item sample_information: Input cell labels
+  \item \code{expression_profile_trans}: Transformed expression matrix (genes x cells).
+  \item \code{expression_profile_origin}: Original filtered expression matrix (genes x cells).
+  \item \code{trans_matrix}: Learned linear transformation matrix (L).
+  \item \code{sample_information}: Sorted cell type labels.
 }
 }
 \description{
-Implements Large Margin Nearest Neighbor (LMNN) metric learning for single-cell data.
-Returns transformed data in scLearn-compatible format.
+Implements a triplet loss-based linear transformation learning to map gene expression
+into an embedding space where cells of the same type are close and those of different
+types are farther apart. This is a deep metric learning alternative to LMNN.
 }

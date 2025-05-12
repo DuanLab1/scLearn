@@ -34,7 +34,7 @@
 #'   \item cell_group: Factor vector of cluster labels
 #' }
 #'
-#' @importFrom ggplot2 ggplot aes geom_point xlab ylab annotate theme_bw theme element_text guide_legend guides
+#' @import ggplot2
 #' @importFrom dplyr group_by summarise
 #' @importFrom stats median
 #'

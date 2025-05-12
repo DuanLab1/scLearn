@@ -3,6 +3,7 @@
 <url><loc>https://github.com/DuanLab1/scLearn/LICENSE-text.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/LICENSE.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/articles/index.html</loc></url>
+<url><loc>https://github.com/DuanLab1/scLearn/articles/scLearn-Metric_Learning.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/articles/scLearn-tutorial.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/authors.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/index.html</loc></url>
@@ -15,9 +16,12 @@
 <url><loc>https://github.com/DuanLab1/scLearn/reference/RefCellData.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/reference/correlation.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/reference/index.html</loc></url>
-<url><loc>https://github.com/DuanLab1/scLearn/reference/mahalanobis_distance_r.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/reference/runDCA.html</loc></url>
+<url><loc>https://github.com/DuanLab1/scLearn/reference/runITML.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/reference/runLMNN.html</loc></url>
+<url><loc>https://github.com/DuanLab1/scLearn/reference/runMMC.html</loc></url>
+<url><loc>https://github.com/DuanLab1/scLearn/reference/runMSL.html</loc></url>
+<url><loc>https://github.com/DuanLab1/scLearn/reference/runNCA.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/reference/sankey_plot.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/reference/scLearn_cell_assignment.html</loc></url>
 <url><loc>https://github.com/DuanLab1/scLearn/reference/scLearn_model_learning.html</loc></url>

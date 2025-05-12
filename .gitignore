@@ -40,4 +40,4 @@ vignettes/*.pdf
 
 # Mac os file
 .DS_Store
-
+.Rbuildignore

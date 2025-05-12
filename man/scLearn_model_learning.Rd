@@ -2,14 +2,14 @@
 % Please edit documentation in R/scLearn_model_learning.R
 \name{scLearn_model_learning}
 \alias{scLearn_model_learning}
-\title{Train scLearn Reference Model with Selectable Metric Learning}
+\title{Train scLearn Reference Model with Multiple Metric Learning Options}
 \usage{
 scLearn_model_learning(
   high_varGene_names,
   expression_profile,
   sample_information_cellType,
   sample_information_timePoint = NULL,
-  method = c("DCA", "LMNN"),
+  method = c("DCA", "LMNN", "MSL", "NCA", "ITML", "MMC"),
   bootstrap_times = 10,
   cutoff = 0.01,
   dim_para = 0.999,
@@ -25,7 +25,16 @@ scLearn_model_learning(
 
 \item{sample_information_timePoint}{Optional time point annotations (default: NULL)}
 
-\item{method}{Metric learning method ("DCA" or "LMNN", default: "DCA")}
+\item{method}{Metric learning method to use. One of:
+\itemize{
+  \item "DCA" - Discriminative Component Analysis (linear transformation maximizing between-class/within-class variance ratio)
+  \item "LMNN" - Large Margin Nearest Neighbors (preserves k-NN classification boundaries with margin constraints)
+  \item "MSL" - Multi-Similarity Loss-Based Large Margin Nearest Neighbors (preserves k-NN classification boundaries with margin constraints)
+  \item "NCA" - Neighborhood Components Analysis (maximizes leave-one-out classification probability)
+  \item "ITML" - Information-Theoretic Metric Learning (uses relative distance constraints with information-theoretic regularization)
+  \item "MMC" - Maximum Margin Clustering (explicitly optimizes within-class/between-class scatter matrices)
+}
+Default: "DCA"}
 
 \item{bootstrap_times}{Bootstrap iterations for standard mode (default: 10)}
 
@@ -46,6 +55,25 @@ A scLearn model object containing:
 }
 }
 \description{
-Trains a reference model for cell type annotation using either DCA or LMNN metric learning.
+Trains a reference model for cell type annotation using selectable metric learning methods.
 Supports both standard mode (cell type only) and time-course aware mode (cell type + time point).
+Available methods: DCA, LMNN, NCA, ITML, and MMC.
+}
+\examples{
+\dontrun{
+
+scLearn_model_learning_result <- scLearn_model_learning(
+  high_varGene_names = RefDataQC_HVG_names,
+  expression_profile = RefDataQC_filtered$expression_profile,
+  sample_information_cellType = RefDataQC_filtered$sample_information_cellType,
+  sample_information_timePoint = NULL,
+  method = "DCA",
+  bootstrap_times = 1,
+  cutoff = 0.01,
+  dim_para = 0.999
+)
+}
+}
+\author{
+Bin Duan (binduan\@sjtu.edu.cn)
 }
